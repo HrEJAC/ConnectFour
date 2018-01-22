@@ -1,0 +1,3 @@
+#compile code
+mcs -out:application.exe application.cs &&
+mono application.exe
