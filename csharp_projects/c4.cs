@@ -10,7 +10,6 @@ public class Piece
     public Piece(string col)
     {
         color = col;
-
     }
     public override string ToString()
     {
@@ -87,24 +86,19 @@ public class Board{
     //Only checks for last played piece.
     public bool CheckWin()
     {
-        string refStr="";
-        for(int i=lastI-3;i<=lastI+3;i++){
-            refStr += this.GetStr(i,lastJ);
-        }
-        refStr += " ";
-        for(int j=lastJ-3;j<=lastJ;j++){
-            refStr += this.GetStr(lastI,j);
-        }
-        refStr += " ";
+        string refStr1=" ";
+        string refStr2=" ";
+        string refStr3=" ";
+        string refStr4=" ";
+
         for(int k=-3;k<=3;k++){
-            refStr += this.GetStr(lastI+k,lastJ+k);
+            refStr1 += this.GetStr(lastI+k,lastJ);
+            refStr2 += this.GetStr(lastI,lastJ+k);
+            refStr3 += this.GetStr(lastI+k,lastJ+k);
+            refStr4 += this.GetStr(lastI+k,lastJ-k);
         }
-        refStr += " ";
-        for(int k=-3;k<=3;k++){
-            refStr += this.GetStr(lastI+k,lastJ-k);
-        } 
         string playStr = new string((this.GetStr(lastI,lastJ))[0],4);
-        return refStr.Contains(playStr);
+        return (refStr1+refStr2+refStr3+refStr4).Contains(playStr);
     }
 }
 
@@ -124,9 +118,6 @@ class MainClass
         
         Console.WriteLine("I'm alive " + testPiece.color);
         Console.WriteLine(board.ToString() );
-        Console.WriteLine("Elias er " + elias.color + ". Elias mover 3.");
-        Console.WriteLine("Asger er " + asger.color + ". Asger mover 4.");
-        Console.WriteLine("Elias er " + elias.color + ". Elias mover 3.");
 
         while(true){
             Console.WriteLine("elias turn:");
