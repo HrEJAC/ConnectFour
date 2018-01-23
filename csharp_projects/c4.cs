@@ -1,19 +1,20 @@
 using System;
+using System.Collections.Generic;
 
-namespace c4
+namespace C4
 {
 
 public class Piece
 {
-    public string Color {get;set;}
+    public string color {get;set;}
     public Piece(string col)
     {
-        Color = col;
+        color = col;
 
     }
     public override string ToString()
     {
-        return (((this.Color).ToUpper())[0]).ToString();
+        return (((this.color).ToUpper())[0]).ToString();
     }
 
 }
@@ -21,16 +22,21 @@ public class Piece
 public class Player
 {
     public int playerNumber;
-    public string Color {get;set;}
+    public string color {get;set;}
     public Player(string col)
     {
-        Color = col;
+        color = col;
     }
 }
 
 public class Board{
+    int lastI;
+    int lastJ;
+
     public Piece[,] playArea = new Piece[7,6];
-    public string getStr(int i , int j)
+    //Notation for (i,j) -> (x,y). (0,0) is lower left corner.
+    
+    public string GetStr(int i , int j)
     {
         if(i>=0 && i <= 6 && j >= 0 && j <= 5){
            if (playArea[i,j] != null){return playArea[i,j].ToString();}
@@ -38,6 +44,17 @@ public class Board{
         return " ";
     }
 
+    //Returns list of available columns to play. Indexed 0..6.
+    public List<int> AvailableMoves()
+    {
+        List<int> retList = new List<int>();
+        for(int i=0;i<=6;i++){
+            if (playArea[i,5] == null){retList.Add(i);}
+        }
+        return retList;
+    }
+
+    //Read-friendly console print of board.
     public override string ToString()
     {
         string str = "";
@@ -47,25 +64,47 @@ public class Board{
 
             for(int i=0;i<=6;i++){
             
-                string piece = this.getStr(i,j);
+                string piece = this.GetStr(i,j);
                 str = str + $" {piece} |";
             
             }
             str = str + $"\n{lineSep}\n";
         }
-
-        return str;
+        return str + "- 1 - 2 - 3 - 4 - 5 - 6 - 7 -\n";
     }
-                
-    public void move( Player player,int column )
+    
+    public void Move( Player player,int column )
     {
         int row = 0;
-        while ( playArea[column,row] != null )
-        {
-            row++;
+        while ( playArea[column,row] != null ){row++;}
+        playArea[column,row ] = new Piece(player.color);
+        lastI = column;
+        lastJ = row;
+    }
+
+
+    //CheckWin() returns true if a move ends the game. 
+    //Only checks for last played piece.
+    public bool CheckWin()
+    {
+        string refStr="";
+        for(int i=lastI-3;i<=lastI+3;i++){
+            refStr += this.GetStr(i,lastJ);
         }
-    
-    playArea[column,row ] = new Piece(player.Color ); 
+        refStr += " ";
+        for(int j=lastJ-3;j<=lastJ;j++){
+            refStr += this.GetStr(lastI,j);
+        }
+        refStr += " ";
+        for(int k=-3;k<=3;k++){
+            refStr += this.GetStr(lastI+k,lastJ+k);
+        }
+        refStr += " ";
+        for(int k=-3;k<=3;k++){
+            refStr += this.GetStr(lastI+k,lastJ-k);
+        } 
+        string playStr = new string((this.GetStr(lastI,lastJ))[0],4);
+        return refStr.Contains(playStr);
     }
 }
 
@@ -83,15 +122,24 @@ class MainClass
         Player asger = new Player("blue");
         
         
-        Console.WriteLine("I'm alive " + testPiece.Color);
+        Console.WriteLine("I'm alive " + testPiece.color);
         Console.WriteLine(board.ToString() );
-        Console.WriteLine("Elias er " + elias.Color + ". Elias mover 3.");
-        Console.WriteLine("Asger er " + asger.Color + ". Asger mover 4.");
-        Console.WriteLine("Elias er " + elias.Color + ". Elias mover 3.");
-        board.move(elias,3);
-        board.move(asger,4);
-        board.move(elias,3);
+        Console.WriteLine("Elias er " + elias.color + ". Elias mover 3.");
+        Console.WriteLine("Asger er " + asger.color + ". Asger mover 4.");
+        Console.WriteLine("Elias er " + elias.color + ". Elias mover 3.");
 
+        while(true){
+            Console.WriteLine("elias turn:");
+            board.Move(elias,Int32.Parse(Console.ReadLine()));
+            Console.WriteLine(board.ToString());
+            Console.WriteLine(board.CheckWin());
+
+            Console.WriteLine("asger turn:");
+            board.Move(asger,Int32.Parse(Console.ReadLine()));
+            Console.WriteLine(board.ToString());
+            Console.WriteLine(board.CheckWin());
+        }
+        
         Console.WriteLine (board.ToString());
     }
 }
