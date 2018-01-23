@@ -30,19 +30,24 @@ public class Player
 
 public class Board{
     public Piece[,] playArea = new Piece[7,6];
-    
+    public string getStr(int i , int j)
+    {
+        if(i>=0 && i <= 6 && j >= 0 && j <= 5){
+           if (playArea[i,j] != null){return playArea[i,j].ToString();}
+        }
+        return " ";
+    }
+
     public override string ToString()
     {
         string str = "";
         string lineSep = new string('-',29);
-        for(int i=5;i>=0;i--){
+        for(int j=5;j>=0;j--){
             str = str + "|";
 
-            for(int j=6;j>=0;j--){
+            for(int i=0;i<=6;i++){
             
-                string piece;
-                if (playArea[j,i] != null){piece = playArea[j,i].ToString();}
-                else{piece = " ";}
+                string piece = this.getStr(i,j);
                 str = str + $" {piece} |";
             
             }
