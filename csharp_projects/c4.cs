@@ -13,7 +13,7 @@ public class Piece
     }
     public override string ToString()
     {
-        return (this.Color)[0].ToUpper();
+        return this.Color;
     }
 
 }
@@ -33,40 +33,32 @@ public class Board{
     
     public string getStr(int i, int j) 
     {
-        if (this[i,j] != null)
+        if (playArea[i,j] != null)
         {
-            return this[i,j].ToString();
+            return playArea[i,j].ToString();
         }
         else {return  "0";}
     }
    
-    //public override string ToString()
-    //{
+    public override string ToString()
+    {
         string str = "";
-        string lineSep = new String('-',7*4);
-        static string BoardStr(int i, int j)
-        {
-            switch ( (i,j) )
-            {
-                case ( (0,0) ):
-                    string str = 
-                        (lineSep+"\n| "+
-                        this.getStr(i,j ) +" ");
-                    return str+boardStr(0,1);
-                case ( (i,6) ):
-                    string str =
-                        ("| "+this.getStr(i,6)+" |\n"+
-                        lineSep+"\n");
-                    return str+getStr(10,10);
-                case ( (10,10) ):
-                    return "";
-                case ( (i,j) ):
-                    string str =
-                        ("| "+this.getStr(i,j)+" ");
-                    return str+boardStr(i,j+1);
+        string lineSep = new string('-',29);
+        for(int i=5;i>=0;i--){
+            str = str + "|";
+
+            for(int j=6;j>=0;j--){
+            
+                string piece;
+                if (playArea[j,i] != null){piece = "o";}else{piece = " ";}
+                str = str + $" {piece} |";
+            
             }
+            str = str + $"\n{lineSep}\n";
         }
-    //}
+
+        return str;
+    }
                 
     public void move( Player player,int column )
     {
@@ -92,9 +84,9 @@ class MainClass
         Board board = new Board();
         Player elias = new Player("purple");
         Console.WriteLine("I'm alive " + testPiece.Color);
-        Console.WriteLine (board.getStr() );
+        //Console.WriteLine (board.getStr() );
         board.move(elias,3);
-        Console.WriteLine (board.getStr() );
+        Console.WriteLine (board.ToString());
     }
 }
 }
