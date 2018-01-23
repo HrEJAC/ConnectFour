@@ -13,7 +13,7 @@ public class Piece
     }
     public override string ToString()
     {
-        return this.Color;
+        return (((this.Color).ToUpper())[0]).ToString();
     }
 
 }
@@ -50,7 +50,8 @@ public class Board{
             for(int j=6;j>=0;j--){
             
                 string piece;
-                if (playArea[j,i] != null){piece = "o";}else{piece = " ";}
+                if (playArea[j,i] != null){piece = playArea[j,i].ToString();}
+                else{piece = " ";}
                 str = str + $" {piece} |";
             
             }
