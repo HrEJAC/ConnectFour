@@ -18,15 +18,41 @@ public class Piece
 
 }
 
-public class Player
+public abstract class Player
 {
     public int playerNumber;
     public string color {get;set;}
+    public abstract int nextMove(Board board);
     public Player(string col)
     {
         color = col;
     }
 }
+
+public class Human : Player
+{
+    //checks whether input is valid move, exists when input is quit with code 9
+    public override int nextMove(Board board)
+    {
+        int tryMove = 8;
+        while (((board.AvailableMoves()).Exists 
+                (x => x == tryMove))==false && ((tryMove == 9)==false) )
+        {
+            Console.WriteLine 
+                ("Type desired column to drop piece!");
+            string input = Console.ReadLine();
+            Int32.TryParse(input,out tryMove);
+            if (input == "quit") {tryMove = 9;}
+        }
+        return tryMove;
+    }
+    public Human(string col): base(col)
+    {
+        color = col;
+    }
+}
+
+
 
 public class Board{
     int lastI;
@@ -112,26 +138,25 @@ class MainClass
     {
         Piece testPiece = new Piece("red");    
         Board board = new Board();
-        Player elias = new Player("red");
-        Player asger = new Player("blue");
+        Player elias = new Human("red");
+        Player asger = new Human("blue");
         
         
         Console.WriteLine("I'm alive " + testPiece.color);
         Console.WriteLine(board.ToString() );
 
         while(true){
-            Console.WriteLine("elias turn:");
-            board.Move(elias,Int32.Parse(Console.ReadLine()));
+            int mv = elias.nextMove(board);
+            board.Move(elias,mv);
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
 
-            Console.WriteLine("asger turn:");
-            board.Move(asger,Int32.Parse(Console.ReadLine()));
+            int mv2 = asger.nextMove(board);
+            board.Move(asger,mv2);
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
         }
         
         Console.WriteLine (board.ToString());
     }
-}
-}
+}}
