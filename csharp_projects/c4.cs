@@ -125,7 +125,6 @@ public class Board{
         lastJ = row;
     }
 
-
     //CheckWin() returns true if a move ends the game. 
     //Only checks for last played piece.
     public bool CheckWin()
@@ -146,7 +145,41 @@ public class Board{
     }
 }
 
-
+/*game class for controlling gameflow beautifully with
+userfriendly messages */
+public class Game{
+    public List<Player> players = new List<Player>();
+    public List<Player> CreatePlayers(){      
+        List<Player> players = new List<Player>();
+        Console.WriteLine
+            ("You will now choose your names and playertypes.\n");
+        for (int i=1;i<=2;i++){
+            Console.WriteLine 
+                ("Please choose 1 of following; 'human', 'bot1'");
+            string player = Console.ReadLine();
+            while (player.ToUpper() != "human".ToUpper() ||
+                player.ToUpper() != "bot1".ToUpper()){
+                Console.WriteLine("You have to write 'human' or 'bot1'!");
+                player = Console.ReadLine();
+            }
+            Console.WriteLine("Type the player's name!");
+            string playerName = Console.ReadLine();
+            switch (player.ToUpper()) {
+                case ("HUMAN"): players.Add((Player)(new Human(playerName)));
+                break;
+                default: players.Add((Player)(new PC0(playerName)));
+                break;
+            }
+        }
+        return players;
+    }
+    public string StartGameGUI(){
+        Console.WriteLine
+            ("Welcome to Connect Four by Asger and Elias!");
+        players = this.CreatePlayers();
+        return "";
+    }
+}
 
 class MainClass
 {
