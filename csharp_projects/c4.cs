@@ -22,7 +22,12 @@ public abstract class Player
 {
     public int playerNumber;
     public string color {get;set;}
-    public abstract int nextMove(Board board);
+    public abstract int NextMove(Board board);
+    public static int Rand(int fr,int to)
+    {
+        Random rnd = new Random();
+        return rnd.Next(fr,to);
+     }
     public Player(string col)
     {
         color = col;
@@ -32,17 +37,17 @@ public abstract class Player
 public class Human : Player
 {
     //checks whether input is valid move, exists when input is quit with code 9
-    public override int nextMove(Board board)
+    public override int NextMove(Board board)
     {
         int tryMove = 8;
         while (((board.AvailableMoves()).Exists 
-                (x => x == tryMove))==false && ((tryMove == 9)==false) )
+                (x => x == tryMove))==false && ((tryMove == (-99))==false) )
         {
             Console.WriteLine 
                 ("Type desired column to drop piece!");
             string input = Console.ReadLine();
             Int32.TryParse(input,out tryMove);
-            if (input == "quit") {tryMove = 9;}
+            if (input == "quit") {tryMove = (-99);}
         }
         return tryMove;
     }
@@ -52,6 +57,19 @@ public class Human : Player
     }
 }
 
+
+public class PC0 : Player
+{
+    public override int NextMove(Board board)
+    {
+        var moves = board.AvailableMoves();
+        return moves[(PC0.Rand(0,moves.Count))]; 
+    }
+    public PC0(string col):base(col)
+    {
+        color = col;
+    }
+}
 
 
 public class Board{
@@ -130,8 +148,6 @@ public class Board{
 
 
 
-
-
 class MainClass
 {
     public static void Main()
@@ -139,19 +155,19 @@ class MainClass
         Piece testPiece = new Piece("red");    
         Board board = new Board();
         Player elias = new Human("red");
-        Player asger = new Human("blue");
+        Player asger = new PC0("blue");
         
         
         Console.WriteLine("I'm alive " + testPiece.color);
         Console.WriteLine(board.ToString() );
 
         while(true){
-            int mv = elias.nextMove(board);
+            int mv = elias.NextMove(board);
             board.Move(elias,mv);
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
 
-            int mv2 = asger.nextMove(board);
+            int mv2 = asger.NextMove(board);
             board.Move(asger,mv2);
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
