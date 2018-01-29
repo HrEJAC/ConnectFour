@@ -71,6 +71,23 @@ public class PC0 : Player
     }
 }
 
+public class PC1 : Player
+{
+    public int[] refData;
+
+    public void UpdateData(List<int> data){
+
+    }
+
+    public void GetLatestSheet(){
+
+    }
+
+    public override NextMove(Board board){
+
+    }
+}
+
 
 public class Board{
     int lastI;
@@ -179,6 +196,8 @@ public class Game{
         players = this.CreatePlayers();
         return "";
     }
+    
+    
 }
 
 class MainClass
