@@ -86,19 +86,22 @@ public class Board{
     //Only checks for last played piece.
     public bool CheckWin()
     {
-        string refStr1=" ";
-        string refStr2=" ";
-        string refStr3=" ";
-        string refStr4=" ";
+        string refStrH = " ";
+        string refStrV = " ";
+        string refStrDiagUp = " ";
+        string refStrDiagDown = " ";
 
         for(int k=-3;k<=3;k++){
-            refStr1 += this.GetStr(lastI+k,lastJ);
-            refStr2 += this.GetStr(lastI,lastJ+k);
-            refStr3 += this.GetStr(lastI+k,lastJ+k);
-            refStr4 += this.GetStr(lastI+k,lastJ-k);
+            refStrH += this.GetStr(lastI+k,lastJ);
+            refStrDiagUp += this.GetStr(lastI+k,lastJ+k);
+            refStrDiagDown += this.GetStr(lastI+k,lastJ-k);
+            if(k<=0){
+                refStrV += this.GetStr(lastI,lastJ+k);
+            }
         }
         string playStr = new string((this.GetStr(lastI,lastJ))[0],4);
-        return (refStr1+refStr2+refStr3+refStr4).Contains(playStr);
+        return 
+            (refStrH+refStrV+refStrDiagUp+refStrDiagDown).Contains(playStr);
     }
 }
 
