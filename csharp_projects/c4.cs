@@ -47,7 +47,7 @@ public class Human : Player
                 ("Type desired column to drop piece!");
             string input = Console.ReadLine();
             Int32.TryParse(input,out tryMove);
-            if (input == "quit") {tryMove = (-99);}
+            if (input == "quit"||input=="q") {tryMove = (-99);}
         }
         return tryMove;
     }
@@ -151,36 +151,98 @@ public class Board{
 /*game class for controlling gameflow beautifully with
 userfriendly messages */
 public class Game{
-    public List<Player> players = new List<Player>();
+    
+    Board playBoard;
+    
+    //List of players initialized 
+    List<Player> players = new List<Player>();
+    
+    //Fills players with user defined players. Can be used to reset players.
     public List<Player> CreatePlayers(){      
         List<Player> players = new List<Player>();
-        Console.WriteLine
-            ("You will now choose your names and playertypes.\n");
+        Console.WriteLine("You will now choose your names and playertypes.\n");
+
         for (int i=1;i<=2;i++){
-            Console.WriteLine 
-                ("Please choose 1 of following; 'human', 'bot1'");
+            Console.WriteLine
+                ("Player "+i+": Please choose 'human' or 'bot1'");
             string player = Console.ReadLine();
-            while (player.ToUpper() != "human".ToUpper() ||
-                player.ToUpper() != "bot1".ToUpper()){
+
+            while (player.ToUpper() != "HUMAN" &&
+                player.ToUpper() != "BOT1"){
+                
                 Console.WriteLine("You have to write 'human' or 'bot1'!");
                 player = Console.ReadLine();
             }
-            Console.WriteLine("Type the player's name!");
-            string playerName = Console.ReadLine();
+            
             switch (player.ToUpper()) {
-                case ("HUMAN"): players.Add((Player)(new Human(playerName)));
-                break;
-                default: players.Add((Player)(new PC0(playerName)));
-                break;
+                
+                case ("HUMAN"): 
+                    players.Add(new Human(""));
+                    break;
+                
+                default: 
+                    players.Add(new PC0(""));
+                    break;
             }
         }
+        //Trash code. Manually specifying colors until we decide whether the
+        //user can decide colors.
+        players[0].color = "Red";
+        players[1].color = "Blue";
+        Console.WriteLine("Player 1 is: "+ players[0].color);
+        Console.WriteLine("Player 2 is: "+ players[1].color);
+
         return players;
     }
-    public string StartGameGUI(){
-        Console.WriteLine
-            ("Welcome to Connect Four by Asger and Elias!");
+
+    //Resets board.
+    public void ResetBoard(){
+        playBoard = new Board();
+    }
+
+    //Initializes players and creates board
+    public void StartGameUI(){
+        Console.WriteLine("Welcome to Connect Four by Asger and Elias!");
         players = this.CreatePlayers();
-        return "";
+        this.ResetBoard();
+
+    }
+
+    //Starts gameflow meant for human players. AI training is another method
+    public void StartGameFlow()
+    {
+        string playOrEnd = "";
+        while(playOrEnd.ToUpper() != "Q" && playOrEnd.ToUpper() != "QUIT")
+        {
+            Console.WriteLine("New Game is starting:");
+            this.ResetBoard();
+
+            Console.WriteLine(playBoard.ToString());
+            
+            //While TakeMove() doesn't report game ending, print board
+            //and take next move.
+            while(this.TakeMove()==false)
+            {
+                Console.WriteLine(playBoard.ToString());
+            }
+            Console.WriteLine("Final board:\n" + playBoard.ToString());
+            Console.WriteLine("'q' to quit:");
+            playOrEnd = Console.ReadLine();
+        } 
+    }
+
+    //Take move for all players returning true if game ends.
+    bool TakeMove(){
+        for (int i = 0; i < players.Count;i++)
+        {
+            playBoard.Move(players[i], players[i].NextMove(playBoard));
+            if(playBoard.CheckWin()==true ||
+                    playBoard.AvailableMoves().Count == 0 )
+            {
+                return true;
+            }
+        }
+        return false;       
     }
 }
 
@@ -188,27 +250,10 @@ class MainClass
 {
     public static void Main()
     {
-        Piece testPiece = new Piece("red");    
-        Board board = new Board();
-        Player elias = new Human("red");
-        Player asger = new PC0("blue");
+        Game gameFlow = new Game();
+        gameFlow.StartGameUI();
+        gameFlow.StartGameFlow();
         
-        
-        Console.WriteLine("I'm alive " + testPiece.color);
-        Console.WriteLine(board.ToString() );
-
-        while(true){
-            int mv = elias.NextMove(board);
-            board.Move(elias,mv);
-            Console.WriteLine(board.ToString());
-            Console.WriteLine(board.CheckWin());
-
-            int mv2 = asger.NextMove(board);
-            board.Move(asger,mv2);
-            Console.WriteLine(board.ToString());
-            Console.WriteLine(board.CheckWin());
-        }
-        
-        Console.WriteLine (board.ToString());
     }
-}}
+}
+}
