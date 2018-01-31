@@ -94,7 +94,7 @@ public class PC1 : Player
     }    
 
     //delete all memory and reset the sheet
-    public static void resetData(){
+    public static void ResetData(){
         try{
             using (StreamWriter file = 
                     new StreamWriter("PC1DATA.txt", false))
@@ -153,24 +153,28 @@ public class PC1 : Player
                 switch (data[i,j]){
                     //if a piece on the winning team is on this tile
                     case (2):
-                        k = (42.0-refData[i,j]*w)/(42.0-refData[i,j]);
-                        refData[i,j] = refData[i,j]*w;
-                        for (int ii=0;ii<=6;ii++){
-                            for (int jj=0;jj<=5;jj++){
-                                if (!(ii==i&&jj==j)){
-                                    refData[ii,jj]=refData[ii,jj]*k;
+                        if (refData[i,j]<5.0){
+                            k = (42.0-refData[i,j]*w)/(42.0-refData[i,j]);
+                            refData[i,j] = refData[i,j]*w;
+                            for (int ii=0;ii<=6;ii++){
+                                for (int jj=0;jj<=5;jj++){
+                                    if (!(ii==i&&jj==j)){
+                                        refData[ii,jj]=refData[ii,jj]*k;
+                                    }
                                 }
                             }
                         }
                     break;
                     //if losing piece is on this tile
                     case (1):
-                        k = (42.0-refData[i,j]*l)/(42.0-refData[i,j]);
-                        refData[i,j] = refData[i,j]*l;
-                        for (int ii=0;ii<=6;ii++){
-                            for (int jj=0;jj<=5;jj++){
-                                if (!(ii==i&&jj==j)){
-                                    refData[ii,jj]=refData[ii,jj]*k;
+                        if (refData[i,j]>0.2){
+                            k = (42.0-refData[i,j]*l)/(42.0-refData[i,j]);
+                            refData[i,j] = refData[i,j]*l;
+                            for (int ii=0;ii<=6;ii++){
+                                for (int jj=0;jj<=5;jj++){
+                                    if (!(ii==i&&jj==j)){
+                                        refData[ii,jj]=refData[ii,jj]*k;
+                                    }
                                 }
                             }
                         }
@@ -225,15 +229,17 @@ public class PC1 : Player
         } 
         file.Close();
     }
-
+    
+    //chooses next from availablemoves by random
+    //with the weighted numbers from the sheet
     public override int NextMove(Board board){
         List<int> moves = board.AvailableMoves2d();
-        List<Double> ladder = new List<Double>();
-        ladder.Add(refData[0,1]);
+        List<Double> ladder = new List<Double>();  
+        ladder.Add(refData[moves[0],moves[1]]);
         for (int i=2;i<moves.Count;i=i+2){
-            ladder.Add(refData[i,i+1]+ladder[ladder.Count-1]);
+            ladder.Add(refData[moves[i],moves[i+1]]+ladder[ladder.Count-1]);
         }
-        Double num = Player.RandDouble(ladder[0],ladder[ladder.Count-1]);
+        Double num = Player.RandDouble(0.0,ladder[ladder.Count-1]);
         int inc = 0;
         while (num > ladder[inc]){
             inc++;
@@ -277,12 +283,14 @@ public class Board{
         List<int> retList = new List<int>();
         int num;
         for (int i=0;i<=6;i++){
-            num = 0;
-            while(num<6&&playArea!=null){
-                num++;
+            num = 6;
+            while(num>=1&&playArea[i,num-1]==null){
+                num--;
             }
-            retList.Add(i);
-            retList.Add(num);
+            if (num <6){
+                retList.Add(i);
+                retList.Add(num);
+            }
         }
         return retList;
     }
@@ -435,31 +443,48 @@ public class Game{
         return false;       
     }
 
-    public void TrainingSessionPC1(){
+    public void TrainingSessionPC1(int n){
+        PC1 winner;
         List<PC1> playersT = new List<PC1> {new PC1("red"),new PC1("blue")};
-        int[,] intBoard;
-        this.ResetBoard();
-        UpdateIntBoard(Player winner)
-            for (int i=0;i<=6;i++){
-                for (int j=0;j<=5;j++){
-                    switch (playBoard[i,j]){
-                        case players[0]:
-                            intBoard
+        int[,] intBoard = new int[7,6];
+        PC1.GetLatestSheet();
+        for (int k=1;k<=n;k++){
+            Console.WriteLine("Starting game "+k+" of "+n);
+            this.ResetBoard();
+            int winNum = this.TrainingGamePC1(playersT);
+            Console.WriteLine(winNum);
+            if (winNum < 42) {
+                winner = playersT[winNum%2];
+                for (int i=0;i<=6;i++){
+                    for (int j=0;j<=5;j++){
+                        if(playBoard.GetStr(i,j)==
+                            ((winner.color).ToUpper())[0].ToString()){
+                            intBoard[i,j] = 2;
+                        }
+                        else{if (playBoard.GetStr(i,j) == " "){
+                           intBoard[i,j] = 0;
+                           }
+                        else {intBoard[i,j] = 1;}
+                        }
                     }
                 }
+                PC1.UpdateData(intBoard);
+                PC1.GetLatestSheet();
             }
+        }
     }
     
     //plays game with two PC1s against eachother and returns winner
-    Player TrainingGamePC1(List<PC1> playersT){
-        int turn = 0;
+    int TrainingGamePC1(List<PC1> playersT){
+        int turn = 1;
+        playBoard.Move(playersT[0],playersT[0].NextMove(playBoard));
         while(!(playBoard.CheckWin()) && turn<42 ){
             PC1 pTurn = playersT[turn%2];
+            System.Threading.Thread.Sleep(1);
             playBoard.Move(pTurn,pTurn.NextMove(playBoard));
             turn++;
         }
-        if (turn<42){return playersT[(turn+1)%2];}
-        else {return null;}
+        return turn;
     }
 }
 
@@ -467,6 +492,11 @@ class MainClass
 {
     public static void Main()
     {
+        Game trainingGame = new Game();
+        trainingGame.TrainingSessionPC1(1000);
+        //PC1.ResetData();
+
+
 /*
 <<<<<<< HEAD
         /* Example of new gameflow controls:
@@ -475,7 +505,7 @@ class MainClass
          * gameFlow.StartGameUI();
          * gameFlow.StartGameFlow();
         
-=======*/
+=======
         Piece testPiece = new Piece("red");    
         Board board = new Board();
         Player elias = new Human("red");
@@ -501,7 +531,7 @@ class MainClass
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
         }
-//>>>>>>> refs/remotes/origin/master
+//>>>>>>> refs/remotes/origin/master*/
     }
 }
 }
