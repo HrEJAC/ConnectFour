@@ -30,6 +30,10 @@ public abstract class Player
         Random rnd = new Random();
         return rnd.Next(fr,to);
      }
+    public static Double RandDouble(Double fr, Double to){
+        Random rnd = new Random();
+        return rnd.NextDouble() * (to - fr) + fr;
+    }
     public Player(string col)
     {
         color = col;
@@ -75,10 +79,10 @@ public class PC0 : Player
 
 public class PC1 : Player
 {
-    public Double[,] refData = new Double[7,6];
+    public static Double[,] refData = new Double[7,6];
     
     //print the sheet in the object
-    public string sData(){
+    public static string sData(){
         string r = "";
         Double sum = 0.0;
         foreach (Double i in refData){
@@ -90,7 +94,7 @@ public class PC1 : Player
     }    
 
     //delete all memory and reset the sheet
-    public void resetData(){
+    public static void resetData(){
         try{
             using (StreamWriter file = 
                     new StreamWriter("PC1DATA.txt", false))
@@ -119,7 +123,7 @@ public class PC1 : Player
     }
 
     //take finished game as input to update machine's experience
-    public void UpdateData(int[,] data){
+    public static void UpdateData(int[,] data){
         //input is 1 int for all tiles
         //0 if empty, 1 if losing piece, 2 if winning piece    
 
@@ -207,7 +211,7 @@ public class PC1 : Player
     }
     
     //take the sheet from memoryfile and store it in the object
-    public void GetLatestSheet(){
+    public static void GetLatestSheet(){
         string line = "";
         StreamReader file =   
             new StreamReader("PC1DATA.txt");  
@@ -223,7 +227,18 @@ public class PC1 : Player
     }
 
     public override int NextMove(Board board){
-        return 3;
+        List<int> moves = board.AvailableMoves2d();
+        List<Double> ladder = new List<Double>();
+        ladder.Add(refData[0,1]);
+        for (int i=2;i<moves.Count;i=i+2){
+            ladder.Add(refData[i,i+1]+ladder[ladder.Count-1]);
+        }
+        Double num = Player.RandDouble(ladder[0],ladder[ladder.Count-1]);
+        int inc = 0;
+        while (num > ladder[inc]){
+            inc++;
+        }
+        return moves[inc*2];
     }
 
     public PC1(string col):base(col)
@@ -254,6 +269,20 @@ public class Board{
         List<int> retList = new List<int>();
         for(int i=0;i<=6;i++){
             if (playArea[i,5] == null){retList.Add(i);}
+        }
+        return retList;
+    }
+    
+    public List<int> AvailableMoves2d(){
+        List<int> retList = new List<int>();
+        int num;
+        for (int i=0;i<=6;i++){
+            num = 0;
+            while(num<6&&playArea!=null){
+                num++;
+            }
+            retList.Add(i);
+            retList.Add(num);
         }
         return retList;
     }
@@ -405,33 +434,59 @@ public class Game{
         }
         return false;       
     }
+
+    public void TrainingSessionPC1(){
+        List<PC1> playersT = new List<PC1> {new PC1("red"),new PC1("blue")};
+        int[,] intBoard;
+        this.ResetBoard();
+        UpdateIntBoard(Player winner)
+            for (int i=0;i<=6;i++){
+                for (int j=0;j<=5;j++){
+                    switch (playBoard[i,j]){
+                        case players[0]:
+                            intBoard
+                    }
+                }
+            }
+    }
     
-    
+    //plays game with two PC1s against eachother and returns winner
+    Player TrainingGamePC1(List<PC1> playersT){
+        int turn = 0;
+        while(!(playBoard.CheckWin()) && turn<42 ){
+            PC1 pTurn = playersT[turn%2];
+            playBoard.Move(pTurn,pTurn.NextMove(playBoard));
+            turn++;
+        }
+        if (turn<42){return playersT[(turn+1)%2];}
+        else {return null;}
+    }
 }
 
 class MainClass
 {
     public static void Main()
     {
+/*
 <<<<<<< HEAD
         /* Example of new gameflow controls:
          *
          * Game gameFlow = new Game();
          * gameFlow.StartGameUI();
-         * gameFlow.StartGameFlow();*/
+         * gameFlow.StartGameFlow();
         
-=======
+=======*/
         Piece testPiece = new Piece("red");    
         Board board = new Board();
         Player elias = new Human("red");
-        Player asger = new PC0("blue");
+        Player asger = new PC1("blue");
         PC1 els = new PC1("green");
-        els.resetData();
-        Console.WriteLine(els.sData());
-        els.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
-        els.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
-        els.GetLatestSheet();
-        Console.WriteLine(els.sData());
+        PC1.resetData();
+        Console.WriteLine(PC1.sData());
+        PC1.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
+        PC1.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
+        PC1.GetLatestSheet();
+        Console.WriteLine(PC1.sData());
         Console.WriteLine("I'm alive " + testPiece.color);
         Console.WriteLine(board.ToString() );
 
@@ -446,7 +501,7 @@ class MainClass
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
         }
->>>>>>> refs/remotes/origin/master
+//>>>>>>> refs/remotes/origin/master
     }
 }
 }
