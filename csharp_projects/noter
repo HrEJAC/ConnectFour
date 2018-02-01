@@ -1,2 +1,6 @@
 //Compile til bibliotek. Bare fundet et eller andet sted 
 csc -t:library -out:derp.dll derp.cs
+
+//Compile med bibliotek
+mcs -r:lib_c4.dll c4.cs
+
