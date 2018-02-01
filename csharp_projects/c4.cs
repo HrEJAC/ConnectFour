@@ -47,7 +47,7 @@ public class Human : Player
     {
         int tryMove = 8;
         while (((board.AvailableMoves()).Exists 
-                (x => x == tryMove))==false && ((tryMove == (-99))==false) )
+                (x => x == tryMove-1))==false && ((tryMove == (-99))==false) )
         {
             Console.WriteLine 
                 ("Type desired column to drop piece!");
@@ -55,7 +55,7 @@ public class Human : Player
             Int32.TryParse(input,out tryMove);
             if (input == "quit"||input=="q") {tryMove = (-99);}
         }
-        return tryMove;
+        return tryMove-1;
     }
     public Human(string col): base(col)
     {
@@ -235,20 +235,25 @@ public class PC1 : Player
     public override int NextMove(Board board){
         List<int> moves = board.AvailableMoves2d();
         List<int> moves1d = board.AvailableMoves();
-
-        if ((board.PlayerColors())[0] != ""||(board.PlayerColors())[1] != ""){
-            
+        List<string> pcolors = board.PlayerColors();
+        if (pcolors[0] != "" && pcolors[1] != ""){
             Board testBoard = new Board();
-            testBoard.playArea = board.Copy(); 
-            foreach(int i in moves1d){
-                testBoard.Move(this,i);
-                if (testBoard.CheckWin()) {return i;}
+            testBoard.playArea = board.Copy();
+            string enemy;
+            if (this.color == pcolors[0]){enemy = pcolors[1];}
+            else{enemy = pcolors[0];}
+            int preventLoss = -1;
+            for(int i=0;i<moves1d.Count;i++){
+                int move = moves1d[i];
+                testBoard.Move(this,move);
+                if (testBoard.CheckWin()) {return move;}
+                testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
+                testBoard.Move(new Human(enemy),move);
+                if (testBoard.CheckWin()){preventLoss=move;}
+                testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
             }
-
-
-        } 
-        
-
+            if (preventLoss!=-1){return preventLoss;}
+        }
         List<Double> ladder = new List<Double>();  
         ladder.Add(refData[moves[0],moves[1]]);
         for (int i=2;i<moves.Count;i=i+2){
