@@ -25,6 +25,7 @@ public abstract class Player
     public int playerNumber;
     public string color {get;set;}
     public abstract int NextMove(Board board);
+    public abstract void Learn(int[,] data);
     public static int Rand(int fr,int to)
     {
         Random rnd = new Random();
@@ -42,6 +43,8 @@ public abstract class Player
 
 public class Human : Player
 {
+    public override void Learn(int[,] data){} 
+    
     //checks whether input is valid move, exists when input is quit with code 9
     public override int NextMove(Board board)
     {
@@ -66,24 +69,38 @@ public class Human : Player
 
 public class PC0 : Player
 {
+    public override void Learn(int[,] data){} 
+    
     public override int NextMove(Board board)
     {
         List<int> moves = board.AvailableMoves2d();
         List<int> moves1d = board.AvailableMoves();
+        
         List<string> pcolors = board.PlayerColors();
+        
+        //If turn passed 2.
         if (pcolors[0] != "" && pcolors[1] != ""){
+            
+            //Copy board to check for winning and losing moves.
             Board testBoard = new Board();
             testBoard.playArea = board.Copy();
+            
+            //Enemy color.
             string enemy;
             if (this.color == pcolors[0]){enemy = pcolors[1];}
             else{enemy = pcolors[0];}
+            
+            //Checks for winning moves else checks for losing moves.
             int preventLoss = -1;
             for(int i=0;i<moves1d.Count;i++){
                 int move = moves1d[i];
+                //take move
                 testBoard.Move(this,move);
                 if (testBoard.CheckWin()) {return move;}
                 testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
-                testBoard.Move(new Human(enemy),move);
+
+                //take move enemy
+                testBoard.Move(new Human(enemy),move);            
                 if (testBoard.CheckWin()){preventLoss=move;}
                 testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
             }
@@ -143,7 +160,7 @@ public class PC1 : Player
     }
 
     //take finished game as input to update machine's experience
-    public static void UpdateData(int[,] data){
+    public override void Learn(int[,] data){
         //input is 1 int for all tiles
         //0 if empty, 1 if losing piece, 2 if winning piece    
 
@@ -232,6 +249,7 @@ public class PC1 : Player
             }
             file.Close();
         }
+        PC1.GetLatestSheet();
     }
     
     //take the sheet from memoryfile and store it in the object
@@ -256,12 +274,20 @@ public class PC1 : Player
         List<int> moves = board.AvailableMoves2d();
         List<int> moves1d = board.AvailableMoves();
         List<string> pcolors = board.PlayerColors();
+       
+        //If game passed turn 2.
         if (pcolors[0] != "" && pcolors[1] != ""){
+            
+            //Copy board to check for winning and losing moves.
             Board testBoard = new Board();
             testBoard.playArea = board.Copy();
+            
+            //Enemy color.
             string enemy;
             if (this.color == pcolors[0]){enemy = pcolors[1];}
             else{enemy = pcolors[0];}
+
+            //Checks for winning moves else checks for losing moves.
             int preventLoss = -1;
             for(int i=0;i<moves1d.Count;i++){
                 int move = moves1d[i];
@@ -274,22 +300,27 @@ public class PC1 : Player
             }
             if (preventLoss!=-1){return preventLoss;}
         }
+
+        //Ladder of weighted moves. Better moves takes more space on ladder
         List<Double> ladder = new List<Double>();  
         ladder.Add(refData[moves[0],moves[1]]);
         for (int i=2;i<moves.Count;i=i+2){
             ladder.Add(refData[moves[i],moves[i+1]]+ladder[ladder.Count-1]);
         }
         Double num = Player.RandDouble(0.0,ladder[ladder.Count-1]);
+
+        //Choose random spot on ladder and take move on that step.
         int inc = 0;
         while (num > ladder[inc]){
             inc++;
         }
         return moves[inc*2];
     }
-
+    
     public PC1(string col):base(col)
     {
         color = col;
+        PC1.GetLatestSheet();
     }
 }
 
@@ -297,6 +328,8 @@ public class PC1 : Player
 public class Board{
     int lastI;
     int lastJ;
+
+    //player colors
     string color1 = "";
     string color2 = "";
     public Piece[,] playArea {get;set;} = new Piece[7,6];
@@ -315,6 +348,7 @@ public class Board{
         return new List<string> {color1, color2};
     }
     
+    //returns disposable 2d array of board.
     public Piece[,] Copy(){
         Piece[,] copy = new Piece[7,6];
         for(int i=0;i<=6;i++){
@@ -324,6 +358,7 @@ public class Board{
         }
         return copy;
     }
+
     //Returns list of available columns to play. Indexed 0..6.
     public List<int> AvailableMoves()
     {
@@ -334,6 +369,7 @@ public class Board{
         return retList;
     }
     
+    //Returns list of available tiles in a list formatted [x0,y0,x1,y1 ... ]
     public List<int> AvailableMoves2d(){
         List<int> retList = new List<int>();
         int num;
@@ -369,6 +405,8 @@ public class Board{
         return str + "- 1 - 2 - 3 - 4 - 5 - 6 - 7 -\n";
     }
     
+    //Takes player argument to read color. Places piece in column.
+    //Tip: Use available moves to avoid exception
     public void Move( Player player,int column )
     {
         int row = 0;
@@ -413,7 +451,8 @@ public class Game{
     List<Player> players = new List<Player>();
     
 
-    //Fills players with user defined players. Can be used to reset players.
+    //Fills players with user defined players (Human or bot).
+    //Can be used to reset players.
     public List<Player> CreatePlayers(){      
         List<Player> players = new List<Player>();
         Console.WriteLine("You will now choose your names and playertypes.\n");
@@ -438,14 +477,13 @@ public class Game{
                 
                 default: 
                     players.Add(new PC1(""));
-                    PC1.GetLatestSheet();
                     break;
             }
         }
         //Trash code. Manually specifying colors until we decide whether the
         //user can decide colors.
         players[0].color = "Red";
-        players[1].color = "Blue";
+        players[1].color = "Yellow";
         Console.WriteLine("Player 1 is: "+ players[0].color);
         Console.WriteLine("Player 2 is: "+ players[1].color);
 
@@ -503,46 +541,20 @@ public class Game{
         return false;       
     }
 
-    public void TrainingSessionPC1(int n){
-        Player winner;
-        List<Player> playersT = new List<Player> {new PC1("red"),new PC1("blue")};
-        int[,] intBoard = new int[7,6];
-        PC1.GetLatestSheet();
-        int games = 0;
-        int wins = 0;
-        for (int k=1;k<=n;k++){
-            if (k%100==0){Console.WriteLine("Game "+k+" of "+n);}
-            this.ResetBoard();
-            int winNum = this.TrainingGamePC1(playersT);
-            //Console.WriteLine(winNum);
-            if (winNum < 42) {
-                games++;
-                if (playersT[(winNum+1)%2].color=="red"){wins++;}
-                winner = playersT[(winNum+1)%2];
-                playersT = new List<Player> {playersT[1],playersT[0]};
-                for (int i=0;i<=6;i++){
-                    for (int j=0;j<=5;j++){
-                        if(playBoard.GetStr(i,j)==
-                            ((winner.color).ToUpper())[0].ToString()){
-                            intBoard[i,j] = 2;
-                        }
-                        else{if (playBoard.GetStr(i,j) == " "){
-                           intBoard[i,j] = 0;
-                           }
-                        else {intBoard[i,j] = 1;}
-                        }
-                    }
-                }
-                PC1.UpdateData(intBoard);
-                PC1.GetLatestSheet();
-            }
+    public void TrainingSession(int n, Player player1, Player player2){
+        List<Player> playerList = new List<Player> {player1,player2};
+
+        for(int i = 0; i<=n-1;  i++){
+            if (i%100==0){Console.WriteLine("Game "+i+" of "+n);}
+            
+            this.TrainingGame(playerList);
+            playerList = new List<Player> {playerList[1],playerList[0]};
+            
         }
-        Console.WriteLine(wins);
-        Console.WriteLine(games);
     }
-    
-    //plays game with two PC1s against eachother and returns winner
-    int TrainingGamePC1(List<Player> playersT){
+    public void TrainingGame(List<Player> playersT){
+        this.ResetBoard();
+        Player winner = new Human("grey");
         int turn = 1;
         playBoard.Move(playersT[0],playersT[0].NextMove(playBoard));
         while(!(playBoard.CheckWin()) && turn<42 ){
@@ -550,11 +562,31 @@ public class Game{
             System.Threading.Thread.Sleep(1);
             playBoard.Move(pTurn,pTurn.NextMove(playBoard));
             turn++;
-            //Console.WriteLine(playBoard);
         }
-            //Console.WriteLine(playBoard);
-        return turn;
-    }
+        //Finds winner
+        int[,] intBoard = new int[7,6];
+        //Console.WriteLine(playBoard);
+        
+        if (turn < 42) {winner = playersT[(turn+1)%2];}
+        
+        for (int i=0;i<=6;i++){
+            for (int j=0;j<=5;j++){
+                if(playBoard.GetStr(i,j)==
+                    ((winner.color).ToUpper())[0].ToString()){
+                    intBoard[i,j] = 2;
+                }
+                else {if (playBoard.GetStr(i,j) == " "){
+                        intBoard[i,j] = 0;
+                    }
+                else {intBoard[i,j] = 1;}
+                }
+            }
+        }
+        
+        try{playersT[0].Learn(intBoard);}catch{}
+        try{playersT[1].Learn(intBoard);}catch{}
+        
+    } 
 }
 
 class MainClass
@@ -562,20 +594,18 @@ class MainClass
     public static void Main()
     {
         Game trainingGame = new Game();
-        //trainingGame.TrainingSessionPC1(1000);
-        //PC1.ResetData();
+        //trainingGame.TrainingSession(1000,new PC1("Red"),new PC0("Yellow"));
+        PC1.ResetData();
         trainingGame.StartGameUI();
         trainingGame.StartGameFlow();
 
 
-//<<<<<<< HEAD
         /* Example of new gameflow controls:
          *
          * Game gameFlow = new Game();
          * gameFlow.StartGameUI();
          * gameFlow.StartGameFlow();
         
-=======
         Board board = new Board();
         Player elias = new Human("red");
         Player asger = new PC1("blue");
@@ -586,11 +616,11 @@ class MainClass
             Console.WriteLine(board.CheckWin());
 
             int mv2 = asger.NextMove(board);
-            board.Move(asger,mv2);
+          board.Move(asger,mv2);
             Console.WriteLine(board.ToString());
             Console.WriteLine(board.CheckWin());
         }
-//>>>>>>> refs/remotes/origin/master*/
+*/
     }
 }
 }
