@@ -388,7 +388,7 @@ public class Game{
                     break;
                 
                 default: 
-                    players.Add(new PC0(""));
+                    players.Add(new PC1(""));
                     break;
             }
         }
@@ -442,6 +442,7 @@ public class Game{
     bool TakeMove(){
         for (int i = 0; i < players.Count;i++)
         {
+            Console.WriteLine(players[i]);
             playBoard.Move(players[i], players[i].NextMove(playBoard));
             if(playBoard.CheckWin()==true ||
                     playBoard.AvailableMoves().Count == 0 )
@@ -492,7 +493,9 @@ public class Game{
             System.Threading.Thread.Sleep(1);
             playBoard.Move(pTurn,pTurn.NextMove(playBoard));
             turn++;
+            Console.WriteLine(playBoard);
         }
+            //Console.WriteLine(playBoard);
         return turn;
     }
 }
@@ -502,12 +505,13 @@ class MainClass
     public static void Main()
     {
         Game trainingGame = new Game();
-        trainingGame.TrainingSessionPC1(1000);
+        //trainingGame.TrainingSessionPC1(1);
         //PC1.ResetData();
+        trainingGame.StartGameUI();
+        trainingGame.StartGameFlow();
 
 
-/*
-<<<<<<< HEAD
+//<<<<<<< HEAD
         /* Example of new gameflow controls:
          *
          * Game gameFlow = new Game();
@@ -515,20 +519,9 @@ class MainClass
          * gameFlow.StartGameFlow();
         
 =======
-        Piece testPiece = new Piece("red");    
         Board board = new Board();
         Player elias = new Human("red");
         Player asger = new PC1("blue");
-        PC1 els = new PC1("green");
-        PC1.resetData();
-        Console.WriteLine(PC1.sData());
-        PC1.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
-        PC1.UpdateData(new int[,] {{1,2,9,9,5,6},{9,9,9,9,5,6},{3,3,3,3,5,6},{4,4,4,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6},{9,9,3,4,5,6}});
-        PC1.GetLatestSheet();
-        Console.WriteLine(PC1.sData());
-        Console.WriteLine("I'm alive " + testPiece.color);
-        Console.WriteLine(board.ToString() );
-
         while(true){
             int mv = elias.NextMove(board);
             board.Move(elias,mv);
