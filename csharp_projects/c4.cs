@@ -234,6 +234,15 @@ public class PC1 : Player
     //with the weighted numbers from the sheet
     public override int NextMove(Board board){
         List<int> moves = board.AvailableMoves2d();
+        List<int> moves1d = board.AvailableMoves();
+
+        Board testBoard = new Board();
+        testBoard = board;
+        
+        testBoard.Move(new Human("Red"),2);
+        Console.WriteLine(testBoard);    
+        Console.WriteLine(board);
+        
         List<Double> ladder = new List<Double>();  
         ladder.Add(refData[moves[0],moves[1]]);
         for (int i=2;i<moves.Count;i=i+2){
