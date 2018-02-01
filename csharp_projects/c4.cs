@@ -236,13 +236,19 @@ public class PC1 : Player
         List<int> moves = board.AvailableMoves2d();
         List<int> moves1d = board.AvailableMoves();
 
-        Board testBoard = new Board();
-        testBoard = board;
+        if ((board.PlayerColors())[0] != ""||(board.PlayerColors())[1] != ""){
+            
+            Board testBoard = new Board();
+            testBoard.playArea = board.Copy(); 
+            foreach(int i in moves1d){
+                testBoard.Move(this,i);
+                if (testBoard.CheckWin()) {return i;}
+            }
+
+
+        } 
         
-        testBoard.Move(new Human("Red"),2);
-        Console.WriteLine(testBoard);    
-        Console.WriteLine(board);
-        
+
         List<Double> ladder = new List<Double>();  
         ladder.Add(refData[moves[0],moves[1]]);
         for (int i=2;i<moves.Count;i=i+2){
@@ -266,8 +272,10 @@ public class PC1 : Player
 public class Board{
     int lastI;
     int lastJ;
-
-    public Piece[,] playArea = new Piece[7,6];
+    string color1 = "";
+    string color2 = "";
+    public Piece[,] playArea {get;set;} = new Piece[7,6];
+    
     //Notation for (i,j) -> (x,y). (0,0) is lower left corner.
     
     public string GetStr(int i , int j)
@@ -277,7 +285,20 @@ public class Board{
         }
         return " ";
     }
-
+   
+    public List<string> PlayerColors(){
+        return new List<string> {color1, color2};
+    }
+    
+    public Piece[,] Copy(){
+        Piece[,] copy = new Piece[7,6];
+        for(int i=0;i<=6;i++){
+            for (int j=0;j<=5;j++){
+                copy[i,j] = playArea[i,j];
+            }
+        }
+        return copy;
+    }
     //Returns list of available columns to play. Indexed 0..6.
     public List<int> AvailableMoves()
     {
@@ -330,6 +351,8 @@ public class Board{
         playArea[column,row ] = new Piece(player.color);
         lastI = column;
         lastJ = row;
+        if (color1 == ""){color1 = player.color;}
+        else if (color2 == ""){color2 = player.color;}
     }
 
     //CheckWin() returns true if a move ends the game. 
@@ -364,6 +387,7 @@ public class Game{
     //List of players initialized 
     List<Player> players = new List<Player>();
     
+
     //Fills players with user defined players. Can be used to reset players.
     public List<Player> CreatePlayers(){      
         List<Player> players = new List<Player>();
