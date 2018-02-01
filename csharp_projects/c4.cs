@@ -68,8 +68,28 @@ public class PC0 : Player
 {
     public override int NextMove(Board board)
     {
-        var moves = board.AvailableMoves();
-        return moves[(PC0.Rand(0,moves.Count))]; 
+        List<int> moves = board.AvailableMoves2d();
+        List<int> moves1d = board.AvailableMoves();
+        List<string> pcolors = board.PlayerColors();
+        if (pcolors[0] != "" && pcolors[1] != ""){
+            Board testBoard = new Board();
+            testBoard.playArea = board.Copy();
+            string enemy;
+            if (this.color == pcolors[0]){enemy = pcolors[1];}
+            else{enemy = pcolors[0];}
+            int preventLoss = -1;
+            for(int i=0;i<moves1d.Count;i++){
+                int move = moves1d[i];
+                testBoard.Move(this,move);
+                if (testBoard.CheckWin()) {return move;}
+                testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
+                testBoard.Move(new Human(enemy),move);
+                if (testBoard.CheckWin()){preventLoss=move;}
+                testBoard.playArea[moves[i*2],moves[i*2+1]] = null;
+            }
+            if (preventLoss!=-1){return preventLoss;}
+        }
+        return moves1d[(Player.Rand(0,moves1d.Count-1))]; 
     }
     public PC0(string col):base(col)
     {
@@ -418,6 +438,7 @@ public class Game{
                 
                 default: 
                     players.Add(new PC1(""));
+                    PC1.GetLatestSheet();
                     break;
             }
         }
@@ -483,17 +504,22 @@ public class Game{
     }
 
     public void TrainingSessionPC1(int n){
-        PC1 winner;
-        List<PC1> playersT = new List<PC1> {new PC1("red"),new PC1("blue")};
+        Player winner;
+        List<Player> playersT = new List<Player> {new PC1("red"),new PC1("blue")};
         int[,] intBoard = new int[7,6];
         PC1.GetLatestSheet();
+        int games = 0;
+        int wins = 0;
         for (int k=1;k<=n;k++){
-            Console.WriteLine("Starting game "+k+" of "+n);
+            if (k%100==0){Console.WriteLine("Game "+k+" of "+n);}
             this.ResetBoard();
             int winNum = this.TrainingGamePC1(playersT);
-            Console.WriteLine(winNum);
+            //Console.WriteLine(winNum);
             if (winNum < 42) {
-                winner = playersT[winNum%2];
+                games++;
+                if (playersT[(winNum+1)%2].color=="red"){wins++;}
+                winner = playersT[(winNum+1)%2];
+                playersT = new List<Player> {playersT[1],playersT[0]};
                 for (int i=0;i<=6;i++){
                     for (int j=0;j<=5;j++){
                         if(playBoard.GetStr(i,j)==
@@ -511,18 +537,20 @@ public class Game{
                 PC1.GetLatestSheet();
             }
         }
+        Console.WriteLine(wins);
+        Console.WriteLine(games);
     }
     
     //plays game with two PC1s against eachother and returns winner
-    int TrainingGamePC1(List<PC1> playersT){
+    int TrainingGamePC1(List<Player> playersT){
         int turn = 1;
         playBoard.Move(playersT[0],playersT[0].NextMove(playBoard));
         while(!(playBoard.CheckWin()) && turn<42 ){
-            PC1 pTurn = playersT[turn%2];
+            Player pTurn = playersT[turn%2];
             System.Threading.Thread.Sleep(1);
             playBoard.Move(pTurn,pTurn.NextMove(playBoard));
             turn++;
-            Console.WriteLine(playBoard);
+            //Console.WriteLine(playBoard);
         }
             //Console.WriteLine(playBoard);
         return turn;
@@ -534,7 +562,7 @@ class MainClass
     public static void Main()
     {
         Game trainingGame = new Game();
-        //trainingGame.TrainingSessionPC1(1);
+        //trainingGame.TrainingSessionPC1(1000);
         //PC1.ResetData();
         trainingGame.StartGameUI();
         trainingGame.StartGameFlow();
